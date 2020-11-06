@@ -1,0 +1,50 @@
+import android.content.Context
+import android.util.AttributeSet
+import android.view.MotionEvent
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ScrollView
+import timber.log.Timber
+
+class ScrollView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+    defStyleRes: Int = 0
+) : ScrollView(context, attrs, defStyleAttr, defStyleRes) {
+
+    private val view: View?
+        get() = getChildAt(0)
+
+    init {
+        Timber.tag("LazyScrollView")
+        setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_UP -> this.postDelayed({
+                    if (view != null && onScrollListener != null) {
+                        if (onScrollListener != null) {
+                            //Log.d("MyS", "view?.measuredHeight: ${view?.measuredHeight}, scrollY: $scrollY, height: $height")
+                            Timber.i("view?.measuredHeight: ${view?.measuredHeight}, scrollY: $scrollY, height: $height")
+                            when {
+                                view?.measuredHeight ?: 0 <= scrollY + height -> onScrollListener?.onBottom()
+                                scrollY == 0 -> onScrollListener?.onTop()
+                                else -> {
+                                    onScrollListener?.onScroll()
+                                }
+                            }
+                        }
+                    }
+                }, 233)
+            }
+            false
+        }
+    }
+
+    interface OnScrollListener {
+        fun onBottom()
+        fun onTop()
+        fun onScroll()
+    }
+
+    var onScrollListener: OnScrollListener? = null
+}
